@@ -1,7 +1,11 @@
 package com.ui.pages.KYC.NewPage;
 
+import java.util.List;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
 import com.ui.base.BasePage;
 import com.ui.models.pojo.KYC.WrapperClasses.KycLabelNestedPojo;
 import com.ui.utils.ClickAction;
@@ -95,16 +99,30 @@ public class KYCAddNewPage  extends BasePage {
 
 
             /*
+                To get The last active question
+            */
+
+           public WebElement getLastActiveQuestion(){
+
+            List <WebElement> questionCards = driver.findElements(By.cssSelector(".question-card.open"));
+
+            return questionCards.get(questionCards.size() - 1); 
+
+           }
+
+            /*
                  First (Question) >> Default 
              */
 
-            public KYCAddNewPage fillEnglishQuestion(int index, String englishQuestion) {
-                SendKeys.sendKeys(driver, By.xpath("(//input[@placeholder='Enter English Input Title'])[" + index + "]"), englishQuestion);
+            public KYCAddNewPage fillEnglishQuestion(String englishQuestion) {
+                WebElement input = getLastActiveQuestion().findElement(By.xpath(".//input[@placeholder='Enter English Input Title']"));
+                SendKeys.sendKeytoElement(driver, input, englishQuestion);
                 return this;
             }
 
-            public KYCAddNewPage fillArabicQuestion(int index,  String arabicQuestion) {
-                SendKeys.sendKeys(driver, By.xpath("(//input[@placeholder='Enter Arabic Input Title'])[" + index + "]"), arabicQuestion);
+            public KYCAddNewPage fillArabicQuestion(String arabicQuestion) {
+                WebElement input = getLastActiveQuestion().findElement(By.xpath(".//input[@placeholder='Enter Arabic Input Title']"));
+                SendKeys.sendKeytoElement(driver, input, arabicQuestion);
                 return this;
             }
 
@@ -116,13 +134,15 @@ public class KYCAddNewPage  extends BasePage {
             Options
              */
 
-            public KYCAddNewPage fillEnglishOption(int Index, String englishOption) {
-                SendKeys.sendKeys(driver, By.xpath("(//input[@placeholder='Enter English Option'])[" + Index + "]"), englishOption);
+            public KYCAddNewPage fillEnglishOption(String englishOption) {
+               List<WebElement> options = getLastActiveQuestion().findElements(By.xpath(".//input[@placeholder='Enter English Option']"));
+               SendKeys.sendKeytoElement(driver, options.get(options.size() - 1), englishOption);
                 return this;
             }
 
-            public KYCAddNewPage fillArabicOption(int Index, String arabicOption) {
-                SendKeys.sendKeys(driver, By.xpath("(//input[@placeholder='Enter Arabic Option'])[" + Index + "]"), arabicOption);
+            public KYCAddNewPage fillArabicOption(String arabicOption) {
+               List<WebElement> options = getLastActiveQuestion().findElements(By.xpath(".//input[@placeholder='Enter Arabic Option']"));
+               SendKeys.sendKeytoElement(driver, options.get(options.size() - 1), arabicOption);
                 return this;
             }
 
@@ -131,8 +151,8 @@ public class KYCAddNewPage  extends BasePage {
               click icon to open Nested Options
             */
 
-            public KYCAddNewPage clickAddNestedQuestionsInOption(int index) {
-                ClickAction.clickUsingJavaScript(driver, By.xpath("(//img[@alt='nested'])["+index+"]"));
+            public KYCAddNewPage clickAddNestedQuestionsInOption() {
+                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//img[@alt='nested']")));
                 return this;
             }
 
@@ -140,18 +160,18 @@ public class KYCAddNewPage  extends BasePage {
               click Add Option Button
             */
 
-            public KYCAddNewPage clickAddOptionButtonForMultiQuestions(int index) {
-                Scrolling.scrollToElement(driver, By.xpath("(//span[contains(text(),'Add Option')])[" + index + "]"));
-                ClickAction.clickUsingJavaScript(driver, By.xpath("(//span[contains(text(),'Add Option')])[" + index + "]"));
+            public KYCAddNewPage clickAddOptionButtonForMultiQuestions() {
+                Scrolling.scrollToElement(driver, getLastActiveQuestion().findElement(By.xpath(".//span[contains(text(),'Add Option')]")));
+                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//span[contains(text(),'Add Option')]")));
                 return this;
             }
 
             /*
             Select Dropdown List Type Question
              */
-            public KYCAddNewPage DropdownListTypeQuestion(int index) throws InterruptedException {
-                ClickAction.clickUsingJavaScript(driver, By.xpath("(//div[contains(@class,'align-items-center gap-3')]//div[@class='choices__inner'])[" + index + "]"));
-                ClickAction.click(driver, By.xpath("(//div[contains(@id,'type-item-choice-2')])[" + index + "]"));
+            public KYCAddNewPage DropdownListTypeQuestion() throws InterruptedException {
+                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//div[contains(@class,'align-items-center gap-3')]//div[@class='choices__inner']")));
+                ClickAction.click(driver, getLastActiveQuestion().findElement(By.xpath(".//div[contains(@id,'type-item-choice-2')]")));
                 return this;
             }
 
@@ -168,8 +188,8 @@ public class KYCAddNewPage  extends BasePage {
                Click on Eye Icon
              */
 
-               public KYCAddNewPage clickOnEyeIcon(int index) {
-                ClickAction.clickUsingJavaScript(driver, By.xpath("(//img[@alt='show'])[" + index + "]"));
+               public KYCAddNewPage clickOnEyeIcon() {
+                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//img[@alt='hide']")));
                 return this;
                }
 }

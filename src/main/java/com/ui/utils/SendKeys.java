@@ -2,6 +2,7 @@ package com.ui.utils;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class SendKeys {
 
@@ -20,6 +21,19 @@ public class SendKeys {
              throw new RuntimeException("Text to send cannot be null");
         }
         driver.findElement(locator).sendKeys(text);
+    }
+
+
+    /*
+       The same function but for WebElement not Locator
+     */
+
+    public static void sendKeytoElement(WebDriver driver, WebElement locator, String text) {
+        WaitUtils.waitForElementToBeVisible(driver, locator);  
+        if(text == null){
+             throw new RuntimeException("Text to send cannot be null");
+        }
+        locator.sendKeys(text);
     }
 
 

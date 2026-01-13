@@ -3,6 +3,7 @@ package com.ui.utils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
 public class Scrolling {
 
@@ -23,5 +24,13 @@ public class Scrolling {
         //WaitUtils.waitForElementToBeVisible(driver, locator);
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         executor.executeScript("arguments[0].scrollIntoView(true);", driver.findElement(locator));
+    }
+
+
+
+    public static void scrollToElement(WebDriver driver, WebElement locator) {
+        //WaitUtils.waitForElementToBeVisible(driver, locator);
+        JavascriptExecutor executor = (JavascriptExecutor) driver;
+        executor.executeScript("arguments[0].scrollIntoView(true);", locator);
     }
 }

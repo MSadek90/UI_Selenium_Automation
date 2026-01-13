@@ -5,6 +5,8 @@ package com.ui.actions.KYC;
 import java.util.List;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
 import com.ui.models.pojo.KYC.KycOptionPojo;
 import com.ui.models.pojo.KYC.KycQuestionPojo;
 import com.ui.pages.KYC.NewPage.KYCAddNewPage;
@@ -14,12 +16,7 @@ public class KYCQuestionActions {
     
 
    
-    //For Questions Locators
-    int questionTemp = 1, questionTemp2 = 0 ;
-    //For Options Locators
-    int optionTemp = 1, optionTemp2 = 0 ;
-    // For Nested Options
-    int optionFlag = 0 ;
+    
 
 
     WebDriver driver;
@@ -41,34 +38,34 @@ public class KYCQuestionActions {
     private helper functions 
     
     */
-    private void fillOneQuestionMainFields(KycQuestionPojo kycQuestionPojo, int questionIndex) throws InterruptedException{
+    private void fillOneQuestionMainFields(KycQuestionPojo kycQuestionPojo) throws InterruptedException{
     
           kycAddNewPage
-                    .DropdownListTypeQuestion(questionIndex)
-                    .fillEnglishQuestion(questionIndex, kycQuestionPojo.getLabel().getEn())
-                    .fillArabicQuestion(questionIndex, kycQuestionPojo.getLabel().getAr());
+                    .DropdownListTypeQuestion()
+                    .fillEnglishQuestion(kycQuestionPojo.getLabel().getEn())
+                    .fillArabicQuestion(kycQuestionPojo.getLabel().getAr());
 
     }
 
     
-    private void addOptions(KycOptionPojo kycOptionPojo, int optionIndex){
+    private void addOptions(KycOptionPojo kycOptionPojo){
 
         kycAddNewPage
-        .fillEnglishOption(optionIndex, kycOptionPojo.getLabel().getEn())
-        .fillArabicOption(optionIndex, kycOptionPojo.getLabel().getAr());
+        .fillEnglishOption(kycOptionPojo.getLabel().getEn())
+        .fillArabicOption(kycOptionPojo.getLabel().getAr());
     }
 
 
-    private void clickEyeIcon(int questionTemp){
+    private void clickEyeIcon(){
         kycAddNewPage
-        .clickOnEyeIcon(questionTemp);
+        .clickOnEyeIcon();
     }
 
 
-    private void addNewoption(int optionIndex)
+    private void addNewoption()
     {
         kycAddNewPage
-        .clickAddOptionButtonForMultiQuestions(optionIndex);
+        .clickAddOptionButtonForMultiQuestions();
     }
 
 
@@ -77,9 +74,9 @@ public class KYCQuestionActions {
         .clickAddByNewInputButton();
     }
 
-    private void clickAddNestedQuestionsInOptions(int index){
+    private void clickAddNestedQuestionsInOptions(){
         kycAddNewPage
-        .clickAddNestedQuestionsInOption(index);
+        .clickAddNestedQuestionsInOption();
     }
 
 
@@ -94,96 +91,71 @@ public class KYCQuestionActions {
 
     */
     
+
+     int counter = 1, counter2 = 1, counter3 = 1;
         
 
     public void addQuestionsPerPage(List<KycQuestionPojo>questions) throws InterruptedException{
         
 
-        System.out.println("question_Temp is: " + questionTemp);
-        System.out.println("option_Temp is: " + optionTemp);
-
-       
-      
-
-
         
-        
-
         // Loop on questions with questionTemp (Locators Start from 1)
            
         for( KycQuestionPojo question : questions){
             
-
-            System.out.println("Number of Options of question[" +question.getQuestionId()+"] is: " + question.getOptions().size());
+        System.out.println("counter2: " + counter2++);
 
             //Fill Label en/ar for each question
-            fillOneQuestionMainFields(question, questionTemp);             
+            fillOneQuestionMainFields(question);             
                
             
 
 
+            
+            List <KycOptionPojo> options = question.getOptions();
+            System.out.println("size of options in question["+question.getQuestionId()+"]is: " + options.size());
             //Loop on Options
-            for(KycOptionPojo option : question.getOptions()){
-
+            for(int optionIndex = 0 ; optionIndex < options.size() ; optionIndex++){
 
             
+                System.out.println("counter: " + counter++);
                 //Fill Label en/ar for each option
-                addOptions(option, optionTemp);
+                addOptions(options.get(optionIndex));
+
+                
+                if (optionIndex < options.size()-1) {
+
+                    addNewoption();
+                }
 
 
                 
 
                 //Nested questions in Options
-                if (option.getQuestions() != null) {
-                    
-                    optionFlag = 1;
-                    questionTemp2 = questionTemp;// to fill exact options
+                if (options.get(optionIndex).getQuestions() != null) {
                     
                     
-                    clickAddNestedQuestionsInOptions(optionTemp);
+                    
+                    clickAddNestedQuestionsInOptions();
 
 
-
-                    optionTemp2 = option.getQuestions().get(questionTemp - 1).getOptions().size();
-                    System.out.println("Number of options in question["+questionTemp+"] is: " + optionTemp2);
-                    
-                    
-                    optionTemp++;
-                    System.out.println("option Temp is: " + optionTemp);
-                    
-                    
-                    questionTemp++;
-                    System.out.println("question Temp is: " + questionTemp);
                    
-                    addQuestionsPerPage(option.getQuestions());
-                }
-
-
-                if(optionFlag == 1){
-                    
-                    System.out.println("optionTemp2 before loop is: " + optionTemp2);
-                    
-                    for(int index =0 ; index < optionTemp2 ;index++){
-                        
-                        addNewoption(questionTemp2);
-                
-                    }
-                    optionFlag=0;
+                    addQuestionsPerPage(options.get(optionIndex).getQuestions());
                 }
                 
-                    else{
-                
-                        addNewoption(questionTemp);
-                
-                    }
-                    
-                optionTemp++;
+        
+              
             }
+            clickEyeIcon();
+            
+            System.out.println("counter3: " + counter3++);
+
+    
+            
 
           
                 //addNewQuestionbutton();
-                //clickEyeIcon(questionTemp);
-                //questionTemp++;
+                //clickEyeIcon(index);
             
         }    
         

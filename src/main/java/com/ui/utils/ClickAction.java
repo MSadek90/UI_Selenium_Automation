@@ -3,6 +3,7 @@ package com.ui.utils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
 public class ClickAction {
@@ -20,6 +21,12 @@ public class ClickAction {
      public static void click(WebDriver driver, By locator) {
           WaitUtils.waitForElementToBeClickable(driver, locator);
           driver.findElement(locator).click();
+    }
+
+
+     public static void click(WebDriver driver, WebElement locator) {
+          WaitUtils.waitForElementToBeClickable(driver, locator);
+          locator.click();
     }
 
 
@@ -96,6 +103,13 @@ public class ClickAction {
         WaitUtils.waitForElementToBeClickable(driver, locator);
         JavascriptExecutor executor = (JavascriptExecutor) driver;
         executor.executeScript("arguments[0].click();", driver.findElement(locator));
+    }   
+
+
+    public static void  clickUsingJavaScriptWithElement(WebDriver driver, WebElement locator) {
+        WaitUtils.waitForElementToBeClickable(driver, locator);
+        JavascriptExecutor executor = (JavascriptExecutor) driver;
+        executor.executeScript("arguments[0].click();", locator);
     }   
 
 

@@ -2,6 +2,7 @@ package com.ui.utils;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import com.ui.config.BrowserConfig;
@@ -29,6 +30,17 @@ public class WaitUtils {
             throw new RuntimeException("Element is not visible: " + locator);
          }
     }
+
+    public static void waitForElementToBeVisible(WebDriver driver, WebElement locator) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(BrowserConfig.EXPLICIT_WAIT));
+
+         try{
+            wait.until(ExpectedConditions.visibilityOf(locator));
+         }catch (Exception e){
+            System.out.println("Element is not visible " + locator);
+            throw new RuntimeException("Element is not visible: " + locator);
+         }
+    }
     
     /**
      * func: wait for element to be clickable
@@ -38,6 +50,17 @@ public class WaitUtils {
      * 1. Wait for element to be clickable
      */
     public static void waitForElementToBeClickable(WebDriver driver, By locator) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(BrowserConfig.EXPLICIT_WAIT));
+        try{
+            wait.until(ExpectedConditions.elementToBeClickable(locator));
+        }catch (Exception e){
+            System.out.println("Element is not clickable " + locator);
+            throw new RuntimeException("Element is not clickable: " + locator);
+        }
+    }
+
+
+    public static void waitForElementToBeClickable(WebDriver driver, WebElement locator) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(BrowserConfig.EXPLICIT_WAIT));
         try{
             wait.until(ExpectedConditions.elementToBeClickable(locator));
