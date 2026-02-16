@@ -26,4 +26,10 @@
         </classes>
     </test>
     
+    <test name="Fund Creation Tests" preserve-order="true">
+        <classes>
+            <class name="com.ui.tests.Fund.FundCreationTest"/>
+        </classes>
+    </test>
+    
 </suite>

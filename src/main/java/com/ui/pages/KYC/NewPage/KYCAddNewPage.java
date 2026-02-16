@@ -1,8 +1,10 @@
 package com.ui.pages.KYC.NewPage;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
@@ -29,7 +31,7 @@ public class KYCAddNewPage  extends BasePage {
     private final By englishDescriptionField = By.xpath("//textarea[contains(@placeholder,'page description in English') or contains(@name,'description_en')]");
     private final By arabicDescriptionField =  By.xpath("//textarea[contains(@placeholder,'page description in Arabic') or contains(@name,'description_ar')]");
     private final By addByNewInputButton = By.cssSelector("button[class='add-input']");
-    private final By addNestedInOption = By.xpath("(//img[@alt='nested'])[1]");
+  
     
 
 //(
@@ -102,6 +104,7 @@ public class KYCAddNewPage  extends BasePage {
                 To get The last active question
             */
 
+           
            public WebElement getLastActiveQuestion(){
 
             List <WebElement> questionCards = driver.findElements(By.cssSelector(".question-card.open"));
@@ -110,49 +113,57 @@ public class KYCAddNewPage  extends BasePage {
 
            }
 
+
+
+
+
             /*
                  First (Question) >> Default 
              */
 
             public KYCAddNewPage fillEnglishQuestion(String englishQuestion) {
-                WebElement input = getLastActiveQuestion().findElement(By.xpath(".//input[@placeholder='Enter English Input Title']"));
-                SendKeys.sendKeytoElement(driver, input, englishQuestion);
+                By input = By.xpath("//input[@placeholder='Enter English Input Title']");
+                SendKeys.sendKeys(driver, input, englishQuestion);
                 return this;
             }
 
             public KYCAddNewPage fillArabicQuestion(String arabicQuestion) {
-                WebElement input = getLastActiveQuestion().findElement(By.xpath(".//input[@placeholder='Enter Arabic Input Title']"));
-                SendKeys.sendKeytoElement(driver, input, arabicQuestion);
+                By input = By.xpath("//input[@placeholder='Enter Arabic Input Title']");
+                SendKeys.sendKeys(driver, input, arabicQuestion);
                 return this;
             }
-
+    
 
 
 
 
             /*
-            Options
+               Options
              */
 
-            public KYCAddNewPage fillEnglishOption(String englishOption) {
-               List<WebElement> options = getLastActiveQuestion().findElements(By.xpath(".//input[@placeholder='Enter English Option']"));
-               SendKeys.sendKeytoElement(driver, options.get(options.size() - 1), englishOption);
-                return this;
-            }
+      public KYCAddNewPage fillEnglishOption(String englishOption, int index) {
+        String xpath = "(//input[@placeholder='Enter English Option'])[" + (index + 1) + "]";
+        By input = By.xpath(xpath);
+        SendKeys.sendKeys(driver, input, englishOption);
+        return this;
 
-            public KYCAddNewPage fillArabicOption(String arabicOption) {
-               List<WebElement> options = getLastActiveQuestion().findElements(By.xpath(".//input[@placeholder='Enter Arabic Option']"));
-               SendKeys.sendKeytoElement(driver, options.get(options.size() - 1), arabicOption);
-                return this;
-            }
+    }
 
+
+          public KYCAddNewPage fillArabicOption(String arabicOption, int index) {
+            String xpath = "(//input[@placeholder='Enter Arabic Option'])[" + (index + 1) + "]";
+            By input = By.xpath(xpath);
+            SendKeys.sendKeys(driver, input, arabicOption);
+            return this;
+
+        }
 
             /*
               click icon to open Nested Options
             */
 
-            public KYCAddNewPage clickAddNestedQuestionsInOption() {
-                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//img[@alt='nested']")));
+            public KYCAddNewPage clickAddNestedQuestionsInOption(int index) {
+                ClickAction.clickUsingJavaScript(driver, By.xpath("(//img[@alt='nested'])[" + (index + 1) + "]"));
                 return this;
             }
 
@@ -160,18 +171,19 @@ public class KYCAddNewPage  extends BasePage {
               click Add Option Button
             */
 
-            public KYCAddNewPage clickAddOptionButtonForMultiQuestions() {
-                Scrolling.scrollToElement(driver, getLastActiveQuestion().findElement(By.xpath(".//span[contains(text(),'Add Option')]")));
-                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//span[contains(text(),'Add Option')]")));
+            public KYCAddNewPage clickAddOptionButtonForMultiQuestions(int index) {
+                By addOptionBtn = By.xpath("(//span[contains(text(),'Add Option')])[" + (index + 1) + "]");
+                //((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center', inline: 'nearest'});", driver.findElement(addOptionBtn));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", driver.findElement(addOptionBtn));
                 return this;
             }
 
             /*
             Select Dropdown List Type Question
              */
-            public KYCAddNewPage DropdownListTypeQuestion() throws InterruptedException {
-                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//div[contains(@class,'align-items-center gap-3')]//div[@class='choices__inner']")));
-                ClickAction.click(driver, getLastActiveQuestion().findElement(By.xpath(".//div[contains(@id,'type-item-choice-2')]")));
+            public KYCAddNewPage DropdownListTypeQuestion(int index) throws InterruptedException {
+                ClickAction.clickUsingJavaScript(driver, By.xpath("(//div[contains(@class,'align-items-center gap-3')]//div[@class='choices__inner'])[" + (index) + "]"));
+                ClickAction.click(driver, By.xpath("(//div[contains(@id,'type-item-choice-2')])[" + (index + 1) + "]"));
                 return this;
             }
 
@@ -188,8 +200,9 @@ public class KYCAddNewPage  extends BasePage {
                Click on Eye Icon
              */
 
-               public KYCAddNewPage clickOnEyeIcon() {
-                ClickAction.clickUsingJavaScriptWithElement(driver, getLastActiveQuestion().findElement(By.xpath(".//img[@alt='hide']")));
+               public KYCAddNewPage clickOnEyeIcon(int index) {
+                ClickAction.clickUsingJavaScript(driver, By.xpath("(//img[@alt='hide'])[" + (index + 1) + "]"));
                 return this;
                }
+
 }

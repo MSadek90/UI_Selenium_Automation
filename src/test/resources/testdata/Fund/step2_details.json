@@ -1,0 +1,23 @@
+{
+    "dividendPolicy": "Cash Distribution",
+    "riskClassification": "medium",
+    "minSubscriptionCapital": "50000",
+    "minAdditionalSubscription": "10000",
+    "subscriptionAllocationDays": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday"
+    ],
+    "minRedemptionAmount": "5000",
+    "redemptionAllocationDays": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    ],
+    "redemptionType": "Both"
+}

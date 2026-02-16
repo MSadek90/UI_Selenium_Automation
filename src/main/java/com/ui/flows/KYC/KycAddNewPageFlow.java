@@ -4,12 +4,11 @@ package com.ui.flows.KYC;
 
 
 
-import java.util.List;
 
 import com.ui.actions.KYC.KYCPageActions;
 import com.ui.actions.KYC.KYCQuestionActions;
 import com.ui.models.pojo.KYC.KycPagePojo;
-import com.ui.models.pojo.KYC.KycQuestionPojo;
+
 import com.ui.models.pojo.KYC.WrapperClasses.KycWrapperQuestionsPojo;
 
 

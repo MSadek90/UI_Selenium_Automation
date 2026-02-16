@@ -1,0 +1,21 @@
+{
+    "fundCode": "FND004",
+    "fundType": "Sukuk",
+    "fundNameEn": "Sukuk Fund",
+    "fundNameAr": "صندوق سعف الاستثمارات",
+    "fundStructure": "Closed-ended",
+    "fundCurrency": "Mexican Peso",
+    "inceptionDate": "12/12/2026",
+    "endDate": "31/12/2030",
+    "fundManager": "Select All",
+    "fundBroker": "Select All",
+    "fundCategory": "Category 20",
+    "initialCapital": "1000000",
+    "aggregateCapital": "5000000",
+    "unitPrice": "100",
+    "custodian": "Select All",
+    "financialAuditor": "Select All",
+    "cutOffDate": "15/12/2030",
+    "calculateLevel": "Annually",
+    "annualDays": "365"
+}

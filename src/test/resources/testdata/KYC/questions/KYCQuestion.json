@@ -44,6 +44,13 @@
                                     "en":"Other",
                                     "ar":"محمود السيد"
                                 }
+                            },
+                            {
+                                "optionId":"option_002_a",
+                                "label":{
+                                    "en":"Other",
+                                    "ar":"اسلام"
+                                }
                             }
                         ]
                     }
@@ -69,7 +76,7 @@
                 "optionId":"option_004",
                 "label":{
                     "en":"Other",
-                    "ar":"السيد"
+                    "ar":"عبده"
                 }
             }
 
