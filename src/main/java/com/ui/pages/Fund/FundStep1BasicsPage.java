@@ -3,9 +3,13 @@ package com.ui.pages.Fund;
 import com.ui.base.BasePage;
 import com.ui.models.pojo.Fund.Step1FundBasicsPojo;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.List;
 
 import static com.ui.utils.ClickAction.click;
@@ -279,7 +283,6 @@ public class FundStep1BasicsPage extends BasePage {
         try {
             scrollToElement(driver, triggerLocator);
             click(driver, triggerLocator);
-            Thread.sleep(500);
 
             // Target only the currently VISIBLE dropdown (class 'show')
             By optionLocator = By.xpath(
@@ -298,121 +301,40 @@ public class FundStep1BasicsPage extends BasePage {
     }
 
     /**
-     * Sets an Element Plus date picker value by clicking through the calendar UI.
-     * Date format from JSON: DD/MM/YYYY (e.g., "12/12/2026")
+     * Sets an Element Plus date picker value using JavaScript.
+     * Date format from JSON: YYYY-MM-DD (e.g., "2026-12-12")
      *
-     * Scopes all selectors to the currently VISIBLE popup panel to avoid
-     * conflicts when multiple date pickers exist on the same page.
+     * Regular sendKeys does NOT work with Element Plus / Vue.js controlled inputs
+     * because Vue's reactivity system doesn't detect raw DOM value changes.
+     * Instead, we use JavaScript to:
+     * 1. Find and focus the input
+     * 2. Use the native input value setter (bypasses Vue getter/setter)
+     * 3. Dispatch 'input' and 'change' events to notify Vue
+     * 4. Blur the input to close the date picker popup
      */
     private void setDateBySendKeys(By dateInputLocator, String date) {
         try {
-            // Parse the date (DD/MM/YYYY)
-            String[] parts = date.split("/");
-            int targetDay = Integer.parseInt(parts[0]);
-            int targetMonth = Integer.parseInt(parts[1]);
-            int targetYear = Integer.parseInt(parts[2]);
-
-            // Dismiss any previously open popup
-            clickBody();
-            Thread.sleep(300);
-
-            // Click the input to open the date picker popup
             scrollToElement(driver, dateInputLocator);
-            click(driver, dateInputLocator);
-            Thread.sleep(500);
+            WebElement dateInput = driver.findElement(dateInputLocator);
 
-            // Find the currently visible popup panel
-            WebElement activePanel = findVisibleDatePanel();
-            if (activePanel == null) {
-                logger.error("Date picker popup not found for: " + date);
-                return;
-            }
+            // Use JavaScript to set value and trigger Vue reactivity
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+            js.executeScript(
+                    "var input = arguments[0];" +
+                            "input.focus();" +
+                            "var nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;"
+                            +
+                            "nativeInputValueSetter.call(input, arguments[1]);" +
+                            "input.dispatchEvent(new Event('input', { bubbles: true }));" +
+                            "input.dispatchEvent(new Event('change', { bubbles: true }));" +
+                            "input.blur();",
+                    dateInput, date);
 
-            // --- Navigate to the correct YEAR ---
-            int maxAttempts = 20;
-            for (int i = 0; i < maxAttempts; i++) {
-                int displayedYear = extractYear(activePanel);
-                if (displayedYear == targetYear)
-                    break;
-                if (displayedYear < targetYear) {
-                    activePanel.findElement(By.cssSelector(".el-picker-panel__icon-btn.d-arrow-right")).click();
-                } else {
-                    activePanel.findElement(By.cssSelector(".el-picker-panel__icon-btn.d-arrow-left")).click();
-                }
-                Thread.sleep(200);
-            }
-
-            // --- Navigate to the correct MONTH ---
-            for (int i = 0; i < maxAttempts; i++) {
-                int displayedMonth = extractMonth(activePanel);
-                if (displayedMonth == targetMonth)
-                    break;
-                if (displayedMonth < targetMonth) {
-                    activePanel.findElement(By.cssSelector(".el-picker-panel__icon-btn.arrow-right")).click();
-                } else {
-                    activePanel.findElement(By.cssSelector(".el-picker-panel__icon-btn.arrow-left")).click();
-                }
-                Thread.sleep(200);
-            }
-
-            // --- Click the target DAY (scoped to active panel) ---
-            List<WebElement> dayCells = activePanel.findElements(By.xpath(
-                    ".//td[contains(@class,'available')]//span[contains(@class,'el-date-table-cell__text') and text()='"
-                            + targetDay + "']"));
-
-            if (!dayCells.isEmpty()) {
-                dayCells.get(0).click();
-                logger.info("Selected date: " + date);
-            } else {
-                logger.error("Day " + targetDay + " not found in date picker");
-            }
-
-            // Wait for popup to close after day selection
-            Thread.sleep(300);
+            logger.info("Set date: " + date);
 
         } catch (Exception e) {
             logger.error("Failed to set date '" + date + "': " + e.getMessage());
         }
-    }
-
-    /** Find the currently visible Element Plus date picker panel */
-    private WebElement findVisibleDatePanel() {
-        List<WebElement> panels = driver.findElements(By.cssSelector(".el-picker-panel.el-date-picker"));
-        for (WebElement panel : panels) {
-            if (panel.isDisplayed()) {
-                return panel;
-            }
-        }
-        return null;
-    }
-
-    /** Extract year number from the active panel's header labels */
-    private int extractYear(WebElement panel) {
-        List<WebElement> labels = panel.findElements(By.cssSelector(".el-date-picker__header-label"));
-        for (WebElement label : labels) {
-            String text = label.getText().trim();
-            try {
-                return Integer.parseInt(text);
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        return -1;
-    }
-
-    /** Extract month index (1-12) from the active panel's header labels */
-    private int extractMonth(WebElement panel) {
-        String[] monthNames = { "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December" };
-        List<WebElement> labels = panel.findElements(By.cssSelector(".el-date-picker__header-label"));
-        for (WebElement label : labels) {
-            String text = label.getText().trim();
-            for (int i = 0; i < monthNames.length; i++) {
-                if (text.equalsIgnoreCase(monthNames[i])) {
-                    return i + 1;
-                }
-            }
-        }
-        return -1;
     }
 
     /**
@@ -450,28 +372,51 @@ public class FundStep1BasicsPage extends BasePage {
     }
 
     /**
-     * Handles multi-select dropdowns.
+     * Handles multi-select dropdowns (Fund broker, Custodian, Financial Auditor).
      * Opens dropdown, clicks "Select All" checkbox, then clicks "Apply".
+     *
+     * HTML structure:
+     * <div class="multi-select-dropdown">
+     * <div class="dropdown-menu show">
+     * <input class="search__input" placeholder="Search by...">
+     * <div class="form-check">
+     * <input class="form-check-input" type="checkbox" id="selectAll">
+     * <label for="selectAll">Select All</label>
+     * </div>
+     * <div class="scroll-area">...</div>
+     * <div class="actions">
+     * <button class="gray__btn">Reset</button>
+     * <button class="main__btn">Apply</button>
+     * </div>
+     * </div>
+     * </div>
      */
     private void selectMultiSelectAll(By triggerLocator) {
         try {
+            // Click trigger to open dropdown
             scrollToElement(driver, triggerLocator);
-            click(driver, triggerLocator);
+            jsClick(triggerLocator);
 
-            By selectAllLocator = By.xpath(
-                    "//label[contains(normalize-space(),'Select All')] | " +
-                            "//span[contains(normalize-space(),'Select All')] | " +
-                            "//div[contains(@class,'checkbox') and contains(normalize-space(),'Select All')]");
-
-            List<WebElement> selectAllItems = driver.findElements(selectAllLocator);
+            // Click the "Select All" checkbox inside the visible dropdown
+            By selectAllCheckbox = By.xpath(
+                    "//div[contains(@class,'multi-select-dropdown')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//input[@id='selectAll']");
+            List<WebElement> selectAllItems = driver.findElements(selectAllCheckbox);
             if (!selectAllItems.isEmpty()) {
-                selectAllItems.get(selectAllItems.size() - 1).click();
+                jsClick(selectAllItems.get(selectAllItems.size() - 1));
+                logger.info("Clicked 'Select All' checkbox");
+            } else {
+                logger.error("'Select All' checkbox not found");
             }
 
-            By applyLocator = By.xpath("//button[normalize-space()='Apply']");
+            // Click "Apply" button inside the visible dropdown
+            By applyLocator = By.xpath(
+                    "//div[contains(@class,'multi-select-dropdown')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//div[contains(@class,'actions')]//button[contains(@class,'main__btn')]");
             List<WebElement> applyBtns = driver.findElements(applyLocator);
             if (!applyBtns.isEmpty()) {
-                applyBtns.get(applyBtns.size() - 1).click();
+                jsClick(applyBtns.get(applyBtns.size() - 1));
+                logger.info("Clicked 'Apply' button");
+            } else {
+                logger.error("'Apply' button not found");
             }
 
             clickBody();
@@ -481,25 +426,54 @@ public class FundStep1BasicsPage extends BasePage {
     }
 
     /**
-     * Handles multi-select dropdowns - selects a single specific option.
+     * Handles multi-select dropdowns - selects a single specific option by
+     * searching.
+     *
+     * Flow:
+     * 1. Click trigger to open dropdown
+     * 2. Type in the search__input to filter items
+     * 3. Click the checkbox of the first matching item in scroll-area
+     * 4. Click "Apply"
      */
     private void selectMultiSelectOption(By triggerLocator, String optionText) {
         try {
+            // Step 1: Click trigger to open dropdown
             scrollToElement(driver, triggerLocator);
-            click(driver, triggerLocator);
+            jsClick(triggerLocator);
 
-            By optionLocator = By.xpath(
-                    "//label[contains(normalize-space(),'" + optionText + "')] | " +
-                            "//span[contains(normalize-space(),'" + optionText + "')]");
-            List<WebElement> options = driver.findElements(optionLocator);
-            if (!options.isEmpty()) {
-                options.get(0).click();
+            // Step 2: Type in search input to filter items
+            By searchInput = By.xpath(
+                    "//div[contains(@class,'multi-select-dropdown')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//input[contains(@class,'search__input')]");
+            List<WebElement> searchInputs = driver.findElements(searchInput);
+            if (!searchInputs.isEmpty()) {
+                WebElement searchEl = searchInputs.get(searchInputs.size() - 1);
+                searchEl.clear();
+                searchEl.sendKeys(optionText);
+                logger.info("Typed '" + optionText + "' in search input");
+            } else {
+                logger.error("Search input not found in dropdown");
             }
 
-            By applyLocator = By.xpath("//button[normalize-space()='Apply']");
+            // Step 3: Click the checkbox of the first matching item in scroll-area
+            By checkboxLocator = By.xpath(
+                    "//div[contains(@class,'multi-select-dropdown')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//div[contains(@class,'scroll-area')]//div[contains(@class,'form-check item')]//input[contains(@class,'form-check-input')]");
+            List<WebElement> checkboxes = driver.findElements(checkboxLocator);
+            if (!checkboxes.isEmpty()) {
+                jsClick(checkboxes.get(0));
+                logger.info("Clicked checkbox for: " + optionText);
+            } else {
+                logger.error("No matching item found for '" + optionText + "' after search");
+            }
+
+            // Step 4: Click "Apply" button
+            By applyLocator = By.xpath(
+                    "//div[contains(@class,'multi-select-dropdown')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//div[contains(@class,'actions')]//button[contains(@class,'main__btn')]");
             List<WebElement> applyBtns = driver.findElements(applyLocator);
             if (!applyBtns.isEmpty()) {
-                applyBtns.get(applyBtns.size() - 1).click();
+                jsClick(applyBtns.get(applyBtns.size() - 1));
+                logger.info("Clicked 'Apply' button");
+            } else {
+                logger.error("'Apply' button not found");
             }
 
             clickBody();
@@ -508,11 +482,25 @@ public class FundStep1BasicsPage extends BasePage {
         }
     }
 
+    // ===================== UTILITY METHODS =====================
+
     /** Click body to dismiss any open popups/dropdowns */
     private void clickBody() {
         try {
             driver.findElement(By.tagName("body")).click();
         } catch (Exception ignored) {
         }
+    }
+
+    /** Clicks an element using JavaScript to bypass Vue.js interception issues */
+    private void jsClick(By locator) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+    }
+
+    /** Clicks a WebElement using JavaScript */
+    private void jsClick(WebElement element) {
+        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
     }
 }

@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import com.ui.models.pojo.Fund.Step1FundBasicsPojo;
 import com.ui.models.pojo.Fund.Step2FundDetailsPojo;
 import com.ui.models.pojo.Fund.Step3UserGroupPojo;
+import com.ui.models.pojo.Fund.Step4NavPojo;
 import com.ui.utils.TestDataLoader;
 
 import java.io.FileInputStream;
@@ -62,5 +63,10 @@ public class FundLoadData {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load Step 3 Test Data: " + e.getMessage(), e);
         }
+    }
+
+    public static Step4NavPojo getStep4Data() {
+        return TestDataLoader.loadDataFromJsonFiles("src/test/resources/testdata/Fund/step4_nav.json",
+                Step4NavPojo.class);
     }
 }

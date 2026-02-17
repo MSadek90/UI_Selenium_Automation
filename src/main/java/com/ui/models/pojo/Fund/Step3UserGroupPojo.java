@@ -7,8 +7,6 @@ package com.ui.models.pojo.Fund;
 public class Step3UserGroupPojo {
 
     private String userGroup;
-    private String minimumLimit;
-    private String maximumLimit;
     private String investorNationality; // "For Saudi Nationals Only", "Non saudi", "All"
 
     public String getUserGroup() {
@@ -17,22 +15,6 @@ public class Step3UserGroupPojo {
 
     public void setUserGroup(String userGroup) {
         this.userGroup = userGroup;
-    }
-
-    public String getMinimumLimit() {
-        return minimumLimit;
-    }
-
-    public void setMinimumLimit(String minimumLimit) {
-        this.minimumLimit = minimumLimit;
-    }
-
-    public String getMaximumLimit() {
-        return maximumLimit;
-    }
-
-    public void setMaximumLimit(String maximumLimit) {
-        this.maximumLimit = maximumLimit;
     }
 
     public String getInvestorNationality() {

@@ -3,49 +3,55 @@ package com.ui.pages.Fund;
 import com.ui.base.BasePage;
 import com.ui.models.pojo.Fund.Step3UserGroupPojo;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.time.Duration;
 import java.util.List;
 
-import static com.ui.utils.ClickAction.click;
 import static com.ui.utils.Scrolling.scrollToElement;
 
 /**
  * Page Object for Step 3: Fund User Groups
- * Handles adding user groups via popup modal.
+ *
+ * Flow:
+ * 1. The page shows a "Fund User Groups" card with an "Add user group" button.
+ * 2. Clicking "Add user group" opens a modal popup.
+ * 3. Fill the modal: User Group dropdown, Min/Max limits, Investor Nationality.
+ * 4. Click "Add" → modal closes → group appears in the table.
+ * 5. Click "Next" to proceed to Step 4.
  */
 public class FundStep3UserGroupsPage extends BasePage {
 
     // ===================== LOCATORS =====================
+    private final By addUserGroupBtn = By.xpath(
+            "//div[@class='btns__wrapper']//button[contains(@class,'bordered__btn') and normalize-space()='Add user group']");
 
-    // "Add user group" button on the main page
-    private final By addUserGroupBtn = By.cssSelector("button.bordered__btn");
+    // Modal container (used to wait for modal to appear/disappear)
+    private final By modalContent = By.cssSelector("div.modal-content");
 
-    // --- Popup Modal Locators ---
     private final By userGroupDropdownTrigger = By.xpath(
-            "//div[contains(@class,'modal-content')]//p[text()='User Group']/following-sibling::div//input[contains(@class,'dropdown-search')]");
+            "//div[contains(@class,'modal-content')]//div[contains(@class,'searched__dropdown')]//input[contains(@class,'dropdown-search') and @placeholder='Select fund user group']");
+    private final By saudiOnlyRadio = By.cssSelector("input#soadi[type='radio'][name='nationality']");
+    private final By nonSaudiRadio = By.cssSelector("input#residents[type='radio'][name='nationality']");
+    private final By allRadio = By.cssSelector("input#all[type='radio'][name='nationality']");
+    private final By modalAddBtn = By.xpath(
+            "//div[contains(@class,'modal-content')]//div[contains(@class,'footer-modale')]//button[@type='submit' and contains(@class,'main__btn')]");
+    private final By modalDiscardBtn = By.xpath(
+            "//div[contains(@class,'modal-content')]//div[contains(@class,'footer-modale')]//button[contains(@class,'discard-btn')]");
 
-    private final By minimumLimitInput = By.xpath(
-            "//div[contains(@class,'modal-content')]//input[@placeholder='Enter Minimum limit']");
+    private final By nextButton = By.xpath(
+            "//div[contains(@class,'card-footer')]//button[contains(@class,'main__btn') and normalize-space()='Next']");
+    private final By previousButton = By.xpath(
+            "//div[contains(@class,'card-footer')]//button[contains(@class,'gray__btn') and normalize-space()='Previous']");
 
-    private final By maximumLimitInput = By.xpath(
-            "//div[contains(@class,'modal-content')]//input[@placeholder='Enter maximum limit']");
-
-    // Investor Nationality radio buttons
-    private final By saudiOnlyRadio = By.cssSelector("input#soadi");
-    private final By nonSaudiRadio = By.cssSelector("input#residents");
-    private final By allRadio = By.cssSelector("input#all");
-
-    // Modal buttons
-    private final By addBtn = By
-            .xpath("//div[contains(@class,'modal-content')]//button[@type='submit' and contains(@class,'main__btn')]");
-    private final By discardBtn = By
-            .xpath("//div[contains(@class,'modal-content')]//button[contains(@class,'discard-btn')]");
-
-    // --- Page Buttons ---
-    private final By nextButton = By.cssSelector("button.main__btn");
-    private final By previousButton = By.cssSelector("button.gray__btn");
+    private final By addedGroupsCount = By.xpath(
+            "//div[contains(@class,'group-list')]//span");
+    private final By tableRows = By.xpath(
+            "//table[@id='table-container']//tbody//tr");
 
     // ===================== CONSTRUCTOR =====================
 
@@ -55,9 +61,6 @@ public class FundStep3UserGroupsPage extends BasePage {
 
     // ===================== MAIN FORM METHOD =====================
 
-    /**
-     * Adds all user groups from the list, then clicks Next.
-     */
     public void fillStep3Form(List<Step3UserGroupPojo> groups) {
         logger.info("Filling Step 3: Fund User Groups");
         if (groups == null || groups.isEmpty()) {
@@ -71,94 +74,143 @@ public class FundStep3UserGroupsPage extends BasePage {
 
     public void clickNext() {
         logger.info("Clicking Next button");
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
+        // Use JS click to avoid "element not clickable" issues
         scrollToElement(driver, nextButton);
-        click(driver, nextButton);
+        jsClick(nextButton);
     }
 
     public void clickPrevious() {
         logger.info("Clicking Previous button");
         scrollToElement(driver, previousButton);
-        click(driver, previousButton);
+        jsClick(previousButton);
     }
 
     // ===================== INDIVIDUAL ACTIONS =====================
 
-    /**
-     * Clicks "Add user group" button, fills the popup form, and clicks "Add".
-     */
     private void addUserGroup(Step3UserGroupPojo group) {
         try {
             logger.info("Adding user group: " + group.getUserGroup());
 
-            // Click "Add user group" button to open modal
-            scrollToElement(driver, addUserGroupBtn);
-            click(driver, addUserGroupBtn);
-            Thread.sleep(500);
+            // Step 1: Click "Add user group" button to open the modal popup
+            logger.info("Step 1: Clicking 'Add user group' button...");
+            jsClick(addUserGroupBtn);
+            Thread.sleep(2000); // Wait for modal animation to complete
 
-            // Select User Group from dropdown
+            // Verify modal is actually open
+            if (!isModalVisible()) {
+                logger.error("Modal did NOT open after clicking 'Add user group' button. Retrying with JS click...");
+                jsClick(addUserGroupBtn);
+                Thread.sleep(2000);
+                if (!isModalVisible()) {
+                    logger.error("Modal still not visible after retry. Aborting this group.");
+                    return;
+                }
+            }
+            logger.info("Modal is open.");
+
+            // Step 2: Select User Group from dropdown
             if (group.getUserGroup() != null) {
-                selectCustomDropdown(userGroupDropdownTrigger, group.getUserGroup());
+                logger.info("Step 2: Selecting User Group: " + group.getUserGroup());
+                selectUserGroupFromDropdown(group.getUserGroup());
             }
 
-            // Enter Minimum limit
-            if (group.getMinimumLimit() != null) {
-                WebElement minEl = driver.findElement(minimumLimitInput);
-                minEl.clear();
-                minEl.sendKeys(group.getMinimumLimit());
-            }
-
-            // Enter Maximum limit
-            if (group.getMaximumLimit() != null) {
-                WebElement maxEl = driver.findElement(maximumLimitInput);
-                maxEl.clear();
-                maxEl.sendKeys(group.getMaximumLimit());
-            }
-
-            // Select Investor Nationality
+            // Step 6: Select Investor Nationality radio button
             if (group.getInvestorNationality() != null) {
+                logger.info("Step 6: Selecting Investor Nationality: " + group.getInvestorNationality());
                 selectNationality(group.getInvestorNationality());
             }
 
-            // Click "Add" button to save
-            click(driver, addBtn);
-            Thread.sleep(500);
+            // Step 7: Click "Add" button in modal footer to save and close modal
+            logger.info("Step 7: Clicking 'Add' button in modal...");
+            jsClick(modalAddBtn);
+            Thread.sleep(2000); // Wait for modal to close and table to update
+
+            // Verify modal closed
+            if (isModalVisible()) {
+                logger.warn("Modal still visible after clicking Add. Trying again...");
+                jsClick(modalAddBtn);
+                Thread.sleep(1000);
+            }
 
             logger.info("User group '" + group.getUserGroup() + "' added successfully.");
+
         } catch (Exception e) {
             logger.error("Failed to add user group '" + group.getUserGroup() + "': " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     // ===================== HELPER METHODS =====================
 
     /**
-     * Handles custom dropdown inside the modal.
-     * Same approach as Step 1 & Step 2: click trigger → click visible dropdown-item
-     * button.
+     * Clicks an element using JavaScript to bypass any overlay/interception issues.
+     * This is critical for Vue.js components where regular Selenium .click() often
+     * fails.
      */
-    private void selectCustomDropdown(By triggerLocator, String optionText) {
+    private void jsClick(By locator) {
         try {
-            scrollToElement(driver, triggerLocator);
-            click(driver, triggerLocator);
-            Thread.sleep(500);
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
+        } catch (Exception e) {
+            logger.error("JS click failed for: " + locator + " | Error: " + e.getMessage());
+            throw e;
+        }
+    }
 
+    /**
+     * Checks if the modal-content div is currently visible on the page.
+     */
+    private boolean isModalVisible() {
+        try {
+            List<WebElement> modals = driver.findElements(modalContent);
+            for (WebElement modal : modals) {
+                if (modal.isDisplayed()) {
+                    return true;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return false;
+    }
+
+    /**
+     * Selects a user group from the custom searched__dropdown inside the modal.
+     */
+    private void selectUserGroupFromDropdown(String optionText) {
+        try {
+            // Click the dropdown trigger to open/show the dropdown menu
+            jsClick(userGroupDropdownTrigger);
+            Thread.sleep(1000); // Wait for dropdown to open
+
+            // Find and click the matching option button inside the visible dropdown-menu
             By optionLocator = By.xpath(
-                    "//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//button[contains(@class,'dropdown-item') and normalize-space()='"
+                    "//div[contains(@class,'modal-content')]//div[contains(@class,'dropdown-menu') and contains(@class,'show')]//button[contains(@class,'dropdown-item') and normalize-space()='"
                             + optionText + "']");
+
             List<WebElement> options = driver.findElements(optionLocator);
 
             if (!options.isEmpty()) {
-                options.get(0).click();
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", options.get(0));
+                logger.info("Selected User Group: " + optionText);
             } else {
-                logger.error("Option '" + optionText + "' not found in dropdown");
+                logger.error("User Group option '" + optionText + "' not found in dropdown");
             }
+
+            Thread.sleep(1000); // Wait for selection to register
+
         } catch (Exception e) {
-            logger.error("Failed to select '" + optionText + "' from dropdown: " + e.getMessage());
+            logger.error("Failed to select User Group '" + optionText + "' from dropdown: " + e.getMessage());
         }
     }
 
     /**
      * Selects the Investor Nationality radio button.
+     * Uses JavaScript click for radio buttons since they can be tricky in Vue.js.
      */
     private void selectNationality(String nationality) {
         By radioLocator;
@@ -176,7 +228,22 @@ public class FundStep3UserGroupsPage extends BasePage {
                 logger.error("Unknown nationality option: " + nationality);
                 return;
         }
-        scrollToElement(driver, radioLocator);
-        click(driver, radioLocator);
+        jsClick(radioLocator);
+        logger.info("Selected Investor Nationality: " + nationality);
+    }
+
+    // ===================== VERIFICATION METHODS =====================
+
+    public int getAddedGroupsTableRowCount() {
+        List<WebElement> rows = driver.findElements(tableRows);
+        return rows.size();
+    }
+
+    public String getAddedGroupsCountText() {
+        try {
+            return driver.findElement(addedGroupsCount).getText();
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

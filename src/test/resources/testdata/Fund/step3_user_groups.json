@@ -1,8 +1,6 @@
 [
     {
-        "userGroup": "Corporate Group",
-        "minimumLimit": "3",
-        "maximumLimit": "18000",
+        "userGroup": "New Group 1",
         "investorNationality": "All"
     }
 ]

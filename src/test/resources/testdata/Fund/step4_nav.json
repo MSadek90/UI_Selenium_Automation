@@ -1,0 +1,12 @@
+{
+    "navFrequency": "Daily",
+    "timeZone": "GMT+02:00 - Africa/Cairo",
+    "cutOffTime": "14:02:00",
+    "weekendDays": [
+        "Friday",
+        "Saturday"
+    ],
+    "navHolidays": [
+        "6 october"
+    ]
+}
