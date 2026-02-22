@@ -1,8 +1,8 @@
 {
-    "fundCode": "FND004",
+    "fundCode": "FND005",
     "fundType": "Sukuk",
-    "fundNameEn": "Sukuk Fund",
-    "fundNameAr": "صندوق سعف الاستثمارات",
+    "fundNameEn": "Infrastructure Growth Fund",
+    "fundNameAr": "صندوق نمو البنية التحتيةت",
     "fundStructure": "Closed-ended",
     "fundCurrency": "Mexican Peso",
     "inceptionDate": "2026-12-12",
@@ -14,7 +14,7 @@
     "aggregateCapital": "5000000",
     "unitPrice": "100",
     "custodian": "Mohsen Mohamed Eldesouky",
-    "financialAuditor": "dfgdfg",
+    "financialAuditor": "Test Auditor 001",
     "cutOffDate": "2030-12-15",
     "calculateLevel": "Annually",
     "annualDays": "365"

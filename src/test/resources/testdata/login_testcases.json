@@ -1,0 +1,13 @@
+
+  {
+    "testCaseId": "LOGIN_001",
+    "testCaseName": "Valid Login Test",
+    "description": "Test login with valid credentials",
+    "username": "admin@email.com",
+    "password": "Neop2020#",
+    "expectedResult": "Pass",
+    "shouldPass": true,
+    "errorMessage": null
+  }
+  
+

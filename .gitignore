@@ -2,10 +2,7 @@
 .github/instructions/codacy.instructions.md
 
 # Sensitive / environment files
-env.properties
-src/main/resources/env.properties
-login_testcases.json
-config/
+
 
 # IDE / editor
 /.idea/
